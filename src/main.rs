@@ -44,7 +44,7 @@ impl Task {
 struct TasksManager {
     tasks: Vec<Task>
 }
-//методи роботи з таск (виведення, додавання, видалення, знайти)
+//методи роботи з таск (виведення, додавання, видалення, знайти, змінити)
 impl TasksManager {
     fn new() -> Self {
         Self { tasks: vec![] }
