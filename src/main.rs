@@ -40,7 +40,26 @@ impl Task {
     }
 }
 
+struct TasksManager {
+    tasks: Vec<Task>
+}
+
+impl TasksManager {
+    fn new() -> Self {
+        Self { tasks: vec![] }
+    }
+
+    fn print_tasks(&self) {
+        for task in self.tasks {
+            task.print_task();
+        }
+    }
+
+    fn add_task(&mut self, task: Task) {
+        self.tasks.push(task);
+    }
+}
 
 fn main() {
-    
+
 }
