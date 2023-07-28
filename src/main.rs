@@ -31,16 +31,22 @@ impl Task {
 
 
     fn print_task(&self) {
-        println!("{} | {} | {}",
+        println!("{} | {} | {}\n\"{}\"",
                  self.name,
                  self.priority.to_string(),
-                 self.add_time.format("%Y-%m-%d %H:%M:%S")
+                 self.add_time.format("%Y-%m-%d %H:%M:%S"),
+                 self.description
         )
     }
 }
 
 
 fn main() {
+    let task = Task::new(
+        "To learn Rust".to_owned(),
+        "I need it...".to_owned(),
+        Priority::High
+    );
 
-
+    task.print_task();
 }
