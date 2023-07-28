@@ -42,11 +42,5 @@ impl Task {
 
 
 fn main() {
-    let task = Task::new(
-        "To learn Rust".to_owned(),
-        "I need it...".to_owned(),
-        Priority::High
-    );
-
-    task.print_task();
+    
 }
