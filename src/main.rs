@@ -1,7 +1,6 @@
-use std::fmt::Error;
+
 use std::io::Write;
 use chrono::{DateTime, Local};
-use serde::__private::de::Content::String;
 
 enum Priority {
     Low,
@@ -14,7 +13,7 @@ impl Priority{
     fn to_string(&self) -> String {
         match self {
             Priority::Low => "Low".to_owned(),
-            Medium => "Medium".to_owned(),
+            Priority::Medium => "Medium".to_owned(),
             Priority::High => "High".to_owned(),
         }
     }
@@ -40,10 +39,10 @@ impl Task {
 
         let priority = match ConsoleManager::input("Enter new task priority: ")
             .unwrap()
-            .to_losercase()
+            .to_lowercase()
             .as_str() {
             "low" => Priority::Low,
-            "medium" = Priority::Medium,
+            "medium" => Priority::Medium,
             "high" => Priority::High,
             _ => {
                 println!("Invalid priority, setting to low");
@@ -119,7 +118,7 @@ impl TasksManager {
 }
 struct ConsoleManager {
     tasks_manager: TasksManager,
-    menu_options: Vec<String()>
+    menu_options: Vec<String>
 }
 
 impl ConsoleManager {
@@ -158,33 +157,52 @@ impl ConsoleManager {
             Ok(command) => {
                 match command.as_str() {
                     "1" => {
-                        self.task_manager.add_task(Task::new_from_console());
+                        self.tasks_manager.add_task(Task::new_from_console());
                     }
                     "2" => {
-                        self.tasks_manager.find_task(match Self::input("Enter task name to find: ") {
-                            Ok(name) => name.as_str(),
-                            Err(err) => {
-                                println!("Error getting user input: {}", err);
-                                return;
-                            }
-                        });
-                    }
-                    "3" => {
-                        let name = (match Self::input("Enter task name to edit: ") {
-                            Ok(name) => name.as_str(),
+                        let name = match Self::input("Enter task name to find: ") {
+                            Ok(name) => name,
                             Err(err) => {
                                 println!("Error getting user input: {}", err);
                                 return;
                             }
                         };
 
-                        match self.tasks_manager.edit_task(name) {
+                        match self.tasks_manager.find_task(name.as_str()) {
+                            None => println!("Task with name \"{}\" doesn't exist", name),
+                            Some(index) => {
+                                println!("Task found!");
+                                self.tasks_manager.tasks.get(index).unwrap().print_task();
+                            }
+                        }
+                    }
+                    "3" => {
+                        let name = match Self::input("Enter task name to edit: ") {
+                            Ok(name) => name,
+                            Err(err) => {
+                                println!("Error getting user input: {}", err);
+                                return;
+                            }
+                        };
+
+                        match self.tasks_manager.edit_task(name.to_string(), Task::new_from_console()) {
                             Ok(msg) => println!("{}", msg),
-                            Err(msg) => {}
+                            Err(msg) => println!("{}", msg),
                         }
                     }
                     "4" => {
-                        self.tasks_manager.remove_task()
+                        let name = match Self::input("Enter task name to remove: ") {
+                            Ok(name) => name,
+                            Err(err) => {
+                                println!("Error getting user input: {}", err);
+                                return;
+                            }
+                        };
+
+                        match self.tasks_manager.remove_task(name.as_str()) {
+                            Ok(msg) => println!("{}", msg),
+                            Err(msg) => println!("{}", msg)
+                        }
                     }
                     "5" => {
                         self.tasks_manager.print_tasks()
@@ -205,5 +223,10 @@ impl ConsoleManager {
 }
 
 fn main() {
+    let mut manager = ConsoleManager::new();
+    manager.print_menu();
 
+    loop {
+        manager.process_command()
+    }
 }
