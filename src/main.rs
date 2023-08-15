@@ -1,5 +1,4 @@
-use std::ffi::c_int;
-use std::fmt::format;
+use std::fmt::Error;
 use std::io::Write;
 use chrono::{DateTime, Local};
 use serde::__private::de::Content::String;
@@ -15,7 +14,7 @@ impl Priority{
     fn to_string(&self) -> String {
         match self {
             Priority::Low => "Low".to_owned(),
-            Priority::Medium => "Medium".to_owned(),
+            Medium => "Medium".to_owned(),
             Priority::High => "High".to_owned(),
         }
     }
@@ -32,7 +31,28 @@ impl Task {
     fn new(name: String, description: String, priority: Priority) -> Self {
         Self { name, description, priority, add_time: Local::now() }
     }
+//створення таска
+    fn new_from_console() -> Self {
+        let name = ConsoleManager::input("Enter new task name: ").unwrap();
 
+        let description = ConsoleManager::input("Enter new task description: ").unwrap();
+
+
+        let priority = match ConsoleManager::input("Enter new task priority: ")
+            .unwrap()
+            .to_losercase()
+            .as_str() {
+            "low" => Priority::Low,
+            "medium" = Priority::Medium,
+            "high" => Priority::High,
+            _ => {
+                println!("Invalid priority, setting to low");
+                Priority::Low
+            }
+        };
+
+        Self::new(name, description, priority)
+    }
 
     fn print_task(&self) {
         println!("{} | {} | {}\n\"{}\"",
@@ -105,7 +125,8 @@ struct ConsoleManager {
 impl ConsoleManager {
 
     fn new() -> Self {
-        Self { tasks_manager: TasksManager::new(), menu_options: vec![
+        Self {
+            tasks_manager: TasksManager::new(), menu_options: vec![
             "Add task".to_owned(),
             "Find task".to_owned(),
             "Edit task".to_owned(),
@@ -113,7 +134,8 @@ impl ConsoleManager {
             "Print task".to_owned(),
             "Store tasks to file".to_owned(),
             "Read tasks from file".to_owned()
-        ] }
+        ]
+        }
     }
 
     fn print_menu(&self) {
@@ -130,19 +152,36 @@ impl ConsoleManager {
         std::io::stdin().read_line(&mut buffer)?;
         Ok(buffer.trim().to_owned())
     }
-
-    fn process_command(&self) {
+//реалізація усіх методів
+    fn process_command(&mut self) {
         match Self::input("Enter command index: ") {
             Ok(command) => {
                 match command.as_str() {
                     "1" => {
-                        self.tasks_manager.add_task()
+                        self.task_manager.add_task(Task::new_from_console());
                     }
                     "2" => {
-                        self.tasks_manager.find_task()
+                        self.tasks_manager.find_task(match Self::input("Enter task name to find: ") {
+                            Ok(name) => name.as_str(),
+                            Err(err) => {
+                                println!("Error getting user input: {}", err);
+                                return;
+                            }
+                        });
                     }
                     "3" => {
-                        self.tasks_manager.edit_task()
+                        let name = (match Self::input("Enter task name to edit: ") {
+                            Ok(name) => name.as_str(),
+                            Err(err) => {
+                                println!("Error getting user input: {}", err);
+                                return;
+                            }
+                        };
+
+                        match self.tasks_manager.edit_task(name) {
+                            Ok(msg) => println!("{}", msg),
+                            Err(msg) => {}
+                        }
                     }
                     "4" => {
                         self.tasks_manager.remove_task()
