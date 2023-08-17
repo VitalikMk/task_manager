@@ -1,7 +1,11 @@
-
+use std::fmt::format;
+use std::fs::File;
 use std::io::Write;
+use std::path::Path;
 use chrono::{DateTime, Local};
+use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize)]
 enum Priority {
     Low,
     Medium,
@@ -18,6 +22,8 @@ impl Priority{
         }
     }
 }
+
+#[derive(Serialize, Deserialize)]
 struct Task {
     name: String,
     description: String,
@@ -113,6 +119,25 @@ impl TasksManager {
         } else {
             Err(format!("Task with name \"{}\" doesn't exist", name))
         }
+    }
+
+    fn store_to_file(&self, filename: &str) -> Result<String, String> {
+        if !Path::new(filename).exists() {
+            let file = match File::create(filename) {
+                Ok(file) => file,
+                Err(err) => Err(format!("Error creating file: {}", err))
+            };
+
+            match serde_ { }
+
+            Ok("".to_owned())
+        }else {
+            Err("File \"{filename}\" already exist".to_owned())
+        }
+    }
+
+    fn read_from_file(&self, filename: &str) -> Result<String, String> {
+
     }
 
 }
