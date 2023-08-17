@@ -1,6 +1,5 @@
-use std::fmt::format;
 use std::fs::File;
-use std::io::Write;
+use std::io::{BufReader, Write};
 use std::path::Path;
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
@@ -125,19 +124,41 @@ impl TasksManager {
         if !Path::new(filename).exists() {
             let file = match File::create(filename) {
                 Ok(file) => file,
-                Err(err) => Err(format!("Error creating file: {}", err))
+                Err(err) => return Err(format!("Error creating file: {}", err))
             };
 
-            match serde_ { }
+            match serde_json::to_writer(&file, &self.tasks) {
+                Ok(_) => Ok("Data stored successfully".to_owned()),
+                Err(err) => Err(format!("Error saving data: {}", err))
+            }
 
-            Ok("".to_owned())
+
         }else {
-            Err("File \"{filename}\" already exist".to_owned())
+            Err("File \"{filename}\" already exists".to_owned())
         }
     }
 
-    fn read_from_file(&self, filename: &str) -> Result<String, String> {
+    fn read_from_file(&mut self, filename: &str) -> Result<String, String> {
+        if Path::new(filename).exists() {
+            let file = match File::open(filename) {
+                Ok(file) => file,
+                Err(err) => return Err(format!("Error creating file: {}", err))
+            };
 
+            let reader = BufReader::new(file);
+
+            self.tasks = match serde_json::from_reader(reader) {
+                Ok(data) => data,
+                Err(err) => {
+                    return Err(format!("Error reading file: {}", err));
+                }
+            };
+
+
+            Ok("Data read successfully".to_owned())
+        }else {
+            Err("File \"{filename}\" doesn't exist".to_owned())
+        }
     }
 
 }
@@ -237,10 +258,32 @@ impl ConsoleManager {
                         self.tasks_manager.print_tasks()
                     }
                     "6" => {
+                        let filename = match Self::input("Enter file name to store data in: ") {
+                            Ok(filename) => filename,
+                            Err(err) => {
+                                println!("Error getting user input: {}", err);
+                                return;
+                            }
+                        };
 
+                        match self.tasks_manager.store_to_file(filename.as_str()) {
+                            Ok(msg) => println!("{}", msg),
+                            Err(msg) => println!("{}", msg)
+                        }
                     }
                     "7" => {
+                        let filename = match Self::input("Enter file name to read data in: ") {
+                            Ok(filename) => filename,
+                            Err(err) => {
+                                println!("Error getting user input: {}", err);
+                                return;
+                            }
+                        };
 
+                        match self.tasks_manager.read_from_file(filename.as_str()) {
+                            Ok(msg) => println!("{}", msg),
+                            Err(msg) => println!("{}", msg)
+                        }
                     }
 
                     _ => println!("Sho ty kurwa napisal, close programu chort")
@@ -252,10 +295,10 @@ impl ConsoleManager {
 }
 
 fn main() {
-    // let mut manager = ConsoleManager::new();
-    // manager.print_menu();
-    //
-    // loop {
-    //     manager.process_command()
-    // }
+    let mut manager = ConsoleManager::new();
+    manager.print_menu();
+
+    loop {
+        manager.process_command()
+    }
 }
